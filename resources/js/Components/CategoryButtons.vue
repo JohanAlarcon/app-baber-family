@@ -9,7 +9,7 @@
 </template>
 
 <script setup>
-import { ref, watch, defineProps, defineEmits } from 'vue'
+import { ref, watch } from 'vue'
 
 // 1. Definir props y emits para soportar v-model
 const props = defineProps({
@@ -36,7 +36,7 @@ watch(() => internalSelected.value, (newVal) => {
 // Opciones de ejemplo
 const options = [
     { value: 'todo', label: 'Todo' },
-    { value: 'barberia', label: 'Barbería' },
+    { value: 'barberia6', label: 'Barbería456' },
     { value: 'cuidado', label: 'Cuidado' },
     { value: 'lociones', label: 'Lociones' }
 ]

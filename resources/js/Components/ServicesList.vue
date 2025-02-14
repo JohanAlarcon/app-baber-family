@@ -1,58 +1,93 @@
 <template>
-    <v-row dense>
-        <v-col v-for="service in filteredServices" :key="service.id" cols="12" >
-            <!-- Tarjeta para cada servicio -->
-            <v-card variant="text" color="transparent" elevation="0">
-                <v-row align="center" no-gutters>
-                    <!-- Columna de la imagen -->
-                    <v-col cols="auto" class="pr-4 position-relative">
-                        <div class="ma-3">
-                            <v-img :aspect-ratio="1" class="bg-black rounded-t-lg" :src="service.image" width="85" />
-                            <div class="service-category-badge rounded-b-lg">{{ service.shortCategory || service.categoryLabel }}</div>
-                        </div>
-                    </v-col>
+    <!-- Si la categoría es "todo", mostramos cada categoría en un carousel independiente -->
+    <div v-if="selectedCategory === 'todo'">
+        <!-- Recorremos el objeto resultante de agrupar servicios -->
+        <div v-for="(servicesArray, cat) in groupedByCategory" :key="cat" class="mb-2">
 
-                    <!-- Columna del contenido principal (título, descripción, precio) -->
-                    <v-col>
-                        <div class="text-body-1 font-weight-bold mb-2" style="color: #333">
-                            {{ service.title }}
-                        </div>
-                        <div class="text-caption mb-2" style="color: #333">
-                            {{ service.description }}
-                        </div>
-                        <div class="text-medium-emphasis font-weight-bold mb-2">
+            <div class="d-flex justify-space-between pa-1">
+                <h3 class="text-overline font-weight-bold pa-3" style="color: #00BCD4;">{{ cat }}</h3>
+                <v-btn icon variant="text" class="my-auto pa-3" @click="onSeeMore(cat)">
+                    <v-icon color="#00BCD4">mdi-chevron-right</v-icon>
+                </v-btn>
+            </div>
+            <v-divider class="mb-5 mx-5" />
+
+            <v-slide-group>
+                <v-slide-group-item v-for="service in servicesArray" :key="service.id">
+                    <v-card class="mx-2 flexcard rounded-lg" max-width="200">
+                        <v-img class="align-end text-white" max-height="100px" :src="service.image" cover>
+                            <v-card-title>
+                                <div class="service-category-badge-all rounded-b-lg">
+                                    {{ service.title }}
+                                </div>
+                            </v-card-title>
+                        </v-img>
+
+                        <v-card-subtitle class="pt-2">
                             {{ formatPrice(service.price) }}
-                        </div>
-                    </v-col>
+                        </v-card-subtitle>
 
-                    <!-- Columna del ícono de flecha (ir a detalle, etc.) -->
-                    <v-col cols="auto" class="text-center">
-                        <v-icon size="large" color="#00BCD4">
-                            mdi-chevron-double-right
-                        </v-icon>
-                    </v-col>
-                </v-row>
-            </v-card>
-        </v-col>
-    </v-row>
+                        <v-card-text>
+                            <div>{{ service.description }}</div>
+                            <v-icon size="large" color="#00BCD4" style="position: absolute; bottom: 0; right: 0;">
+                                mdi-chevron-double-right
+                            </v-icon>
+                        </v-card-text>
+                    </v-card>
+
+                </v-slide-group-item>
+            </v-slide-group>
+
+        </div>
+    </div>
+
+    <!-- Si la categoría NO es "todo", mostramos la lista tradicional -->
+    <div v-else>
+        <v-row dense>
+            <v-col v-for="service in filteredServices" :key="service.id" cols="12">
+                <v-card variant="text" color="transparent" elevation="0">
+                    <v-row align="center" no-gutters>
+                        <!-- Columna de la imagen -->
+                        <v-col cols="auto" class="pr-4 position-relative">
+                            <div class="ma-3">
+                                <v-img :aspect-ratio="1" class="bg-black rounded-t-lg" :src="service.image"
+                                    width="85" />
+                                <div class="service-category-badge rounded-b-lg">
+                                    {{ service.shortCategory || service.categoryLabel }}
+                                </div>
+                            </div>
+                        </v-col>
+
+                        <!-- Columna del contenido principal (título, descripción, precio) -->
+                        <v-col>
+                            <div class="text-body-1 font-weight-bold mb-2" style="color: #333">
+                                {{ service.title }}
+                            </div>
+                            <div class="text-caption mb-2" style="color: #333">
+                                {{ service.description }}
+                            </div>
+                            <div class="text-medium-emphasis font-weight-bold mb-2">
+                                {{ formatPrice(service.price) }}
+                            </div>
+                        </v-col>
+
+                        <!-- Columna del ícono de flecha (ir a detalle, etc.) -->
+                        <v-col cols="auto" class="text-center">
+                            <v-icon size="large" color="#00BCD4">
+                                mdi-chevron-double-right
+                            </v-icon>
+                        </v-col>
+                    </v-row>
+                </v-card>
+                <v-divider class="mx-4" />
+            </v-col>
+        </v-row>
+    </div>
 </template>
 
 <script>
 export default {
-    methods: {
-        truncatedText(text, length = 7) {
-            if (!text) return ''
-            return text.length > length ? text.slice(0, length) + '...' : text
-        },
-        formatPrice(price) {
-            return new Intl.NumberFormat('es-CL', {
-                style: 'currency',
-                currency: 'CLP'
-            }).format(price)
-        }
-    },
     name: 'ServicesList',
-    // Recibimos la categoría actual como prop (ej.: "barberia", "todos", "lociones", etc.)
     props: {
         selectedCategory: {
             type: String,
@@ -136,7 +171,7 @@ export default {
                     image: 'https://i.pinimg.com/236x/0a/a4/f4/0aa4f4e283db499aa26d195dba5af55d.jpg'
                 },
                 {
-                    id: 7,
+                    id: 9,
                     category: 'cuidado',
                     categoryLabel: this.truncatedText('Shampoo', 10),
                     title: 'Shampoo',
@@ -145,31 +180,61 @@ export default {
                     image: 'https://i.pinimg.com/236x/d9/d9/67/d9d967f90832c8be92a30033afcdbc41.jpg'
                 },
                 {
-                    id: 7,
+                    id: 10,
                     category: 'cuidado',
                     categoryLabel: this.truncatedText('Minoxidil', 10),
                     title: 'Minoxidil',
                     description: 'Recupera tu cabello con productos de calidad',
                     price: 42000,
                     image: 'https://i.pinimg.com/236x/bf/fd/a1/bffda1717f1b8bd7cecb05847f9092b4.jpg'
-                },
+                }
             ]
         }
     },
     computed: {
         /**
          * Filtra los servicios por la categoría seleccionada.
-         * Si "selectedCategory" es "todos", muestra todos los servicios.
+         * Si "selectedCategory" es distinto de "todo", se devuelven sólo
+         * los de esa categoría.
          */
         filteredServices() {
             if (this.selectedCategory === 'todo') {
-                // Muestra todo el arreglo
                 return this.services
             }
-            // Muestra sólo los que coincidan con la categoría
             return this.services.filter(
-                service => service.category === this.selectedCategory
+                (service) => service.category === this.selectedCategory
             )
+        },
+
+        /**
+         * Agrupa los servicios por 'service.category'.
+         * Se usa para mostrar un carousel por categoría cuando selectedCategory = 'todo'.
+         */
+        groupedByCategory() {
+            const grouped = {}
+            this.services.forEach((service) => {
+                if (!grouped[service.category]) {
+                    grouped[service.category] = []
+                }
+                grouped[service.category].push(service)
+            })
+            return grouped
+        }
+    },
+    methods: {
+        truncatedText(text, length = 7) {
+            if (!text) return ''
+            return text.length > length ? text.slice(0, length) + '...' : text
+        },
+        formatPrice(price) {
+            return new Intl.NumberFormat('es-CL', {
+                style: 'currency',
+                currency: 'CLP'
+            }).format(price)
+        },
+        // Sólo a modo de ejemplo, un método "ver más" por categoría
+        onSeeMore(category) {
+            alert(`Ver más de la categoría: ${category}`)
         }
     }
 }
@@ -184,5 +249,22 @@ export default {
     padding: 2px 6px;
     font-size: 0.75rem;
     white-space: nowrap;
+}
+
+.service-category-badge-all {
+    max-width: 100%;
+    background-color: #00BCD4;
+    color: #fff;
+    padding: 2px 6px;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+/* Ajusta el espacio entre carousels */
+.mb-8 {
+    margin-bottom: 2rem;
 }
 </style>
